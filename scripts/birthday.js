@@ -89,6 +89,10 @@ window.addEventListener("load", () => {
 // ANIMATION TIMELINE
 // ===========================================================
 const animationTimeline = () => {
+  // Reset .six in case of restart
+  const six = document.querySelector('.six');
+  if (six) six.removeAttribute('style');
+
   // split chars that needs to be animated individually
   const textBoxChars = document.getElementsByClassName("hbd-chatbox")[0];
   const hbd = document.getElementsByClassName("wish-hbd")[0];
@@ -115,7 +119,7 @@ const animationTimeline = () => {
     skewY: "-15deg",
   };
 
-  // GSAP Timeline Max Compatibility
+  // GSAP Timeline
   const tl = gsap.timeline();
 
   // Pre-initialize balloons off-screen so they are hidden at the start
@@ -259,14 +263,6 @@ const animationTimeline = () => {
       rotationZ: -45,
       ease: "back.out(1.5)"
     }, "-=2")
-    .from(".hat", {
-      duration: 0.8,
-      x: -100,
-      y: 350,
-      rotation: -180,
-      opacity: 0,
-      ease: "back.out(1.2)"
-    }, "-=1.2")
     .from(".wish-hbd span", {
       duration: 0.7,
       opacity: 0,
@@ -280,7 +276,7 @@ const animationTimeline = () => {
       duration: 0.7,
       scale: 1,
       rotationY: 0,
-      color: "#3b82f6", // Changed pink to beautiful blue
+      color: "#3b82f6",
       stagger: 0.08,
       ease: "power2.out"
     }, "party")
@@ -291,22 +287,49 @@ const animationTimeline = () => {
       skewX: "-15deg",
       ease: "power2.out"
     }, "party")
+    // Make .six a scrollable fixed overlay — without moving DOM (so GSAP works)
+    .add(() => {
+      const six = document.querySelector('.six');
+      six.style.position = 'fixed';
+      six.style.top = '0';
+      six.style.left = '0';
+      six.style.width = '100vw';
+      six.style.height = '100vh';
+      six.style.overflowY = 'auto';
+      six.style.overflowX = 'hidden';
+      six.style.zIndex = '9998';
+      six.style.background = '#fff';
+      six.style.textAlign = 'center';
+      six.style.padding = '30px 20px 60px';
+      six.style.webkitOverflowScrolling = 'touch';
+      six.scrollTop = 0;
+    }, "party+=0.8")
+    // Brief confetti pop — 2 waves only
     .to(".eight svg", {
-      duration: 1.5,
+      duration: 1.2,
       visibility: "visible",
       opacity: 0,
       scale: 80,
-      repeat: 3,
-      repeatDelay: 1.4,
-      stagger: 0.3
-    })
+      repeat: 1,
+      repeatDelay: 0.6,
+      stagger: 0.25
+    }, "party+=0.5")
+    // Wish text stays visible for user to read (20 seconds), then fade out
     .to(".six", {
       duration: 0.6,
       opacity: 0,
       y: 30,
-      zIndex: "-1",
-      ease: "power2.in"
-    })
+      ease: "power2.in",
+      onStart: function() {
+        const six = document.querySelector('.six');
+        six.style.overflowY = 'hidden';
+      },
+      onComplete: function() {
+        // Completely remove .six from view so it doesn't block clicks
+        const six = document.querySelector('.six');
+        six.style.display = 'none';
+      }
+    }, "+=20")
     .from(".nine p", {
       duration: 0.8,
       opacity: 0,
@@ -314,9 +337,10 @@ const animationTimeline = () => {
       stagger: 1,
       ease: "power2.out"
     })
-    .to(".last-smile", {
-      duration: 0.6,
-      rotation: 90,
+    .from(".last-smile", {
+      duration: 0.5,
+      opacity: 0,
+      scale: 0.5,
       ease: "back.out(2)"
     }, "+=1");
 
